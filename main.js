@@ -13,7 +13,7 @@
 [rewrite_local]
 
 # > 中国移动账单拦截，支持按时间区间过滤账单
-^https?:\/\/touch\.10086\.cn\/i\/v1\/cust\/orderlistqryv3.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/main.js
+^https?:\/\/touch\.10086\.cn\/i\/v1\/cust\/orderlistqryv3.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/yidong.js
 
 [mitm] 
 hostname = touch.10086.cn
