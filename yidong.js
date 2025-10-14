@@ -4,8 +4,14 @@ const CONFIG = {
     // 是否启用日志
     enableLog: true,
     
-    // 返回的空数据（有效的加密空列表）
-    emptyDataResponse: "TDdnLzJZN1FBOG5KWFhwWC8ydlBhUnRsd3FlODBJUkQvdUtVNTVJV3BMQm5VSGp5WjI1ZkJHQnJVcGxtM2VNYTdoa0JDSVl5RDB1bgpqVHRQQWczOHpRPT0="
+    // 空值类型：
+    // 1. "empty_string" - 空字符串 ""
+    // 2. "fixed_encrypted" - 固定的加密空数据
+    // 3. "keep_original" - 保持原响应不变（用于调试）
+    emptyType: "empty_string",
+    
+    // 固定的加密空数据（当 emptyType = "fixed_encrypted" 时使用）
+    fixedEmptyData: "TDdnLzJZN1FBOG5KWFhwWC8ydlBhUnRsd3FlODBJUkQvdUtVNTVJV3BMQm5VSGp5WjI1ZkJHQnJVcGxtM2VNYTdoa0JDSVl5RDB1bgpqVHRQQWczOHpRPT0="
 };
 
 // ============ 工具函数 ============
@@ -37,15 +43,27 @@ if (!response || !response.body) {
         
         log(`响应结构 keys: ${Object.keys(body).join(', ')}`);
         
-        // 替换 body 字段为空数据
-        if (body.body !== undefined) {
+        // 根据配置决定如何处理
+        if (CONFIG.emptyType === "keep_original") {
+            log("配置为保持原响应，不做修改");
+            // 不修改，直接返回
+        } else if (body.body !== undefined) {
             log(`原始 body.body 前50字符: ${body.body.substring(0, 50)}...`);
-            body.body = CONFIG.emptyDataResponse;
+            
+            // 根据配置类型替换
+            if (CONFIG.emptyType === "empty_string") {
+                body.body = "";
+                log(`已替换为空字符串`);
+            } else if (CONFIG.emptyType === "fixed_encrypted") {
+                body.body = CONFIG.fixedEmptyData;
+                log(`已替换为固定的加密空数据`);
+            }
+            
             response.body = JSON.stringify(body);
-            log(`已替换为空数据响应`);
         } else {
             log("警告：响应结构中没有 body 字段，直接替换整个响应体");
-            response.body = JSON.stringify({ body: CONFIG.emptyDataResponse });
+            let emptyValue = CONFIG.emptyType === "empty_string" ? "" : CONFIG.fixedEmptyData;
+            response.body = JSON.stringify({ body: emptyValue });
         }
         
         log(`新响应: ${response.body}`);
@@ -53,8 +71,11 @@ if (!response || !response.body) {
     } catch (e) {
         log(`处理出错: ${e.message}`);
         log(`错误堆栈: ${e.stack}`);
-        // 如果解析失败，构造一个简单的响应
-        response.body = JSON.stringify({ body: CONFIG.emptyDataResponse });
+        // 如果解析失败，根据配置构造响应
+        if (CONFIG.emptyType !== "keep_original") {
+            let emptyValue = CONFIG.emptyType === "empty_string" ? "" : CONFIG.fixedEmptyData;
+            response.body = JSON.stringify({ body: emptyValue });
+        }
     }
     
     log("响应处理完成");
