@@ -27,15 +27,15 @@ function modifyResponse(response) {
         let body = JSON.parse(response.body);
         
         // 检查响应结构
-        if (!body.data || !body.data.outParam) {
+        if (!body.body) {
             log("响应数据结构不正确");
             return response;
         }
         
-        log(`原始数据: ${body.data.outParam.substring(0, 50)}...`);
+        log(`原始数据: ${body.body.substring(0, 50)}...`);
         
         // 直接替换为空值
-        body.data.outParam = CONFIG.replaceValue;
+        body.body = CONFIG.replaceValue;
         response.body = JSON.stringify(body);
         
         log("响应已替换为空值");
