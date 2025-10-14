@@ -17,7 +17,7 @@
 [rewrite_local]
 
 # > 中国联通缴费历史拦截，删除第一条账单记录
-^https?:\/\/upay\.10010\.com\/npfwap\/NpfMobAppQuery\/feeSearch\/queryOrderNew.* url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库/main/联通账单拦截脚本.js
+^https?:\/\/upay\.10010\.com\/npfwap\/NpfMobAppQuery\/feeSearch\/queryOrderNew.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/liantong.js
 
 [mitm] 
 hostname = upay.10010.com
