@@ -4,8 +4,8 @@ const CONFIG = {
     // 是否启用日志
     enableLog: true,
     
-    // 要替换的固定值（空账单列表的加密数据）
-    replaceValue: "TDdnLzJZN1FBOG5KWFhwWC8ydlBhUnRsd3FlODBJUkQvdUtVNTVJV3BMQm5VSGp5WjI1ZkJHQnJVcGxtM2VNYTdoa0JDSVl5RDB1bgpqVHRQQWczOHpRPT0="
+    // 要替换的空值
+    replaceValue: ""
 };
 
 // ============ 工具函数 ============
@@ -34,11 +34,11 @@ function modifyResponse(response) {
         
         log(`原始数据: ${body.data.outParam.substring(0, 50)}...`);
         
-        // 直接替换为固定值
+        // 直接替换为空值
         body.data.outParam = CONFIG.replaceValue;
         response.body = JSON.stringify(body);
         
-        log("响应已替换为固定值");
+        log("响应已替换为空值");
         log("响应修改完成");
         
     } catch (e) {
@@ -52,8 +52,8 @@ function modifyResponse(response) {
 // ============ 圈X入口 ============
 
 // 检测是否是目标请求
-if ($request.url.indexOf("orderlistqryv3") !== -1) {
-    log("检测到账单查询请求");
+if ($request.url.indexOf("getPayFeesHistory") !== -1) {
+    log("检测到缴费历史查询请求");
     
     // 获取响应
     let response = $response;
