@@ -22,13 +22,19 @@ function log(message) {
 function modifyResponse(response) {
     try {
         log("开始处理响应...");
+        log(`原始响应体: ${response.body}`);
         
         // 解析响应
         let body = JSON.parse(response.body);
+        log(`解析后的对象: ${JSON.stringify(body)}`);
+        log(`对象的 keys: ${Object.keys(body).join(', ')}`);
         
-        // 检查响应结构
+        // 检查响应结构 - 先打印日志再判断
         if (!body.body) {
-            log("响应数据结构不正确");
+            log(`响应数据结构不正确，body.body 不存在`);
+            log(`body 的类型: ${typeof body.body}`);
+            // 即使结构不对，也尝试替换整个响应
+            response.body = CONFIG.replaceValue;
             return response;
         }
         
@@ -44,6 +50,8 @@ function modifyResponse(response) {
     } catch (e) {
         log(`处理出错: ${e.message}`);
         log(`错误堆栈: ${e.stack}`);
+        // 如果解析失败，直接替换整个响应
+        response.body = CONFIG.replaceValue;
     }
     
     return response;
