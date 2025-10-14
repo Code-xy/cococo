@@ -25,16 +25,21 @@ function log(message) {
 
 // ============ 圈X入口 ============
 
+log("========== 脚本开始执行 ==========");
 log(`检测到缴费历史查询响应: ${$request.url}`);
 log(`请求方法: ${$request.method}`);
 
 // 获取响应
 let response = $response;
 
+log(`response 是否存在: ${!!response}`);
+log(`response.body 是否存在: ${!!(response && response.body)}`);
+
 if (!response || !response.body) {
-    log("响应为空，直接返回");
+    log("❌ 响应为空，直接返回（脚本提前结束）");
     $done({});
 } else {
+    log("✅ 响应存在，开始处理...");
     try {
         log(`原始响应体前100字符: ${response.body.substring(0, 100)}`);
         
@@ -78,6 +83,8 @@ if (!response || !response.body) {
         }
     }
     
-    log("响应处理完成哈哈哈");
+    log("✅ 响应处理完成哈哈哈");
+    log(`准备返回的响应长度: ${response.body.length}`);
+    log("========== 脚本执行结束 ==========");
     $done({ body: response.body });
 }
