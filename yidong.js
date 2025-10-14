@@ -6,11 +6,10 @@ const CONFIG = {
     
     // 要替换的空值 - 可以尝试以下几种：
     // 1. 空字符串: ""
-    // 2. 空对象: {}
-    // 3. 空数组: []
-    // 4. null
-    // 根据实际情况选择合适的值
-    replaceValue: "",
+    // 2. 有效的空数据加密值（推荐）
+    // 3. 空对象: {}
+    // 4. 空数组: []
+    replaceValue: "TDdnLzJZN1FBOG5KWFhwWC8ydlBhUnRsd3FlODBJUkQvdUtVNTVJV3BMQm5VSGp5WjI1ZkJHQnJVcGxtM2VNYTdoa0JDSVl5RDB1bgpqVHRQQWczOHpRPT0=",
     
     // 是否直接替换整个响应体（不保留JSON结构）
     replaceWholeBody: false
