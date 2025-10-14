@@ -56,7 +56,7 @@ if (!response || !response.body) {
                 log(`已替换为空字符串`);
             } else if (CONFIG.emptyType === "fixed_encrypted") {
                 body.body = CONFIG.fixedEmptyData;
-                log(`已替换为固定的加密空数据`);
+                log(`已替换为固定的加密空数据呢`);
             }
             
             response.body = JSON.stringify(body);
