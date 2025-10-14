@@ -15,6 +15,9 @@ const CryptoJS = (function() {
                 const instance = Object.create(this);
                 instance.init && instance.init.apply(instance, arguments);
                 return instance;
+            },
+            clone: function() {
+                return Object.create(Object.getPrototypeOf(this));
             }
         };
     })();
@@ -53,8 +56,7 @@ const CryptoJS = (function() {
             words.length = Math.ceil(sigBytes / 4);
         },
         clone: function() {
-            const clone = Base.clone.call(this);
-            clone.words = this.words.slice(0);
+            const clone = WordArray.create(this.words.slice(0), this.sigBytes);
             return clone;
         }
     });
