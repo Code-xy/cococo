@@ -84,16 +84,22 @@ function modifyResponse(response) {
 
 // 检测是否是目标请求
 if ($request.url.indexOf("getPayFeesHistory") !== -1) {
-    log("检测到缴费历史查询请求");
-    
-    // 获取响应
-    let response = $response;
-    
-    // 修改响应
-    response = modifyResponse(response);
-    
-    // 返回修改后的响应
-    $done(response);
+    // 跳过 OPTIONS 预检请求，只处理实际数据请求
+    if ($request.method === "OPTIONS") {
+        log("检测到 OPTIONS 预检请求，跳过处理");
+        $done({});
+    } else {
+        log(`检测到缴费历史查询请求，请求方法: ${$request.method}`);
+        
+        // 获取响应
+        let response = $response;
+        
+        // 修改响应
+        response = modifyResponse(response);
+        
+        // 返回修改后的响应
+        $done(response);
+    }
 } else {
     $done({});
 }
