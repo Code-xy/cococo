@@ -1,11 +1,10 @@
 // 圈X脚本 - 中国移动账单拦截修改
 // 使用说明：在圈X中添加重写规则，匹配 touch.10086.cn/i/v1/cust/orderlistqryv3
 
-/**
- * @name 中国移动账单拦截脚本
- * @description 拦截并修改中国移动账单查询响应，支持按时间区间过滤账单
- * @require https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
- */
+
+/*
+@require https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js
+*/
 
 // ============ 配置区域 ============
 const CONFIG = {
