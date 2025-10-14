@@ -11,7 +11,7 @@ const CONFIG = {
     emptyType: "empty_string",
     
     // 固定的加密空数据（当 emptyType = "fixed_encrypted" 时使用）
-    fixedEmptyData: "TDdnLzJZN1FBOG5KWFhwWC8ydlBhUnRsd3FlODBJUkQvdUtVNTVJV3BMQm5VSGp5WjI1ZkJHQnJVcGxtM2VNYTdoa0JDSVl5RDB1bgpqVHRQQWczOHpRPT0="
+    fixedEmptyData: ""
 };
 
 // ============ 工具函数 ============
