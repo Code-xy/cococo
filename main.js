@@ -12,8 +12,8 @@
 *******************************
 [rewrite_local]
 
-# > 中国移动缴费历史拦截，直接返回空值
-^https?:\/\/app\.10086\.cn\/biz-orange\/BN\/payFeesHistory\/getPayFeesHistory.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/yidong.js
+# > 中国移动缴费历史拦截，直接拦截请求返回空数据
+^https?:\/\/app\.10086\.cn\/biz-orange\/BN\/payFeesHistory\/getPayFeesHistory.* url script-request-header https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/yidong.js
 
 [mitm] 
 hostname = app.10086.cn
@@ -24,3 +24,4 @@ hostname = app.10086.cn
 *
 *
 */
+
