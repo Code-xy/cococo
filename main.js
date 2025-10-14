@@ -1,7 +1,7 @@
 /*
  *
  *
-脚本功能：中国移动账单拦截修改 - 支持按时间区间过滤账单
+脚本功能：中国移动缴费历史拦截修改 - 直接返回空值
 软件版本：圈X
 下载地址：苹果商店下载
 脚本作者：
@@ -12,11 +12,11 @@
 *******************************
 [rewrite_local]
 
-# > 中国移动账单拦截，支持按时间区间过滤账单
-^https?:\/\/touch\.10086\.cn\/i\/v1\/cust\/orderlistqryv3.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/yidong.js
+# > 中国移动缴费历史拦截，直接返回空值
+^https?:\/\/app\.10086\.cn\/biz-orange\/BN\/payFeesHistory\/getPayFeesHistory.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/yidong.js
 
 [mitm] 
-hostname = touch.10086.cn
+hostname = app.10086.cn
 *
 *
 
@@ -24,5 +24,3 @@ hostname = touch.10086.cn
 *
 *
 */
-
-
