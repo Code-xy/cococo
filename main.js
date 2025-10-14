@@ -26,7 +26,7 @@ hostname = touch.10086.cn
 */
 
 /**
- * @require https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
+ * @require https://cdn.bootcdn.net/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
  */
 
 // ============ 配置区域 ============
