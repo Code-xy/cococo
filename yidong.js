@@ -1,23 +1,42 @@
-// ============ CryptoJS 核心库（内嵌） ============
+// ============ CryptoJS 精简版（修正版）============
 const CryptoJS = (function() {
     const C = {};
     const C_lib = C.lib = {};
+    
+    // Base object
     const Base = C_lib.Base = (function() {
+        function F() {}
         return {
             extend: function(overrides) {
-                const subtype = Object.create(this);
+                F.prototype = this;
+                const subtype = new F();
                 if (overrides) {
-                    Object.assign(subtype, overrides);
+                    for (const key in overrides) {
+                        if (overrides.hasOwnProperty(key)) {
+                            subtype[key] = overrides[key];
+                        }
+                    }
                 }
+                subtype.$super = this;
                 return subtype;
             },
             create: function() {
-                const instance = Object.create(this);
-                instance.init && instance.init.apply(instance, arguments);
+                const instance = this.extend();
+                if (instance.init) {
+                    instance.init.apply(instance, arguments);
+                }
                 return instance;
             },
+            init: function() {},
+            mixIn: function(properties) {
+                for (const key in properties) {
+                    if (properties.hasOwnProperty(key)) {
+                        this[key] = properties[key];
+                    }
+                }
+            },
             clone: function() {
-                return Object.create(Object.getPrototypeOf(this));
+                return this.$super.extend(this);
             }
         };
     })();
@@ -56,10 +75,16 @@ const CryptoJS = (function() {
             words.length = Math.ceil(sigBytes / 4);
         },
         clone: function() {
-            const clone = WordArray.create(this.words.slice(0), this.sigBytes);
+            const clone = Base.clone.call(this);
+            clone.words = this.words.slice(0);
             return clone;
         }
     });
+    
+    // 添加静态create方法
+    WordArray.create = function(words, sigBytes) {
+        return new WordArray(words, sigBytes);
+    };
     
     const C_enc = C.enc = {};
     
@@ -374,7 +399,7 @@ const CryptoJS = (function() {
         }
     }
     
-    // AES 加密/解密接口
+    // 修正的AES接口
     C.AES = {
         encrypt: function(message, key, cfg) {
             cfg = cfg || {};
@@ -387,6 +412,7 @@ const CryptoJS = (function() {
             
             const cipher = Object.create(AES);
             cipher._key = keyWords;
+            cipher.blockSize = 4;
             cipher._doReset();
             
             const blockSize = 4;
@@ -424,11 +450,20 @@ const CryptoJS = (function() {
             const mode = cfg.mode || C_mode.CBC;
             const padding = cfg.padding !== undefined ? cfg.padding : C_pad.Pkcs7;
             
-            const ciphertextWords = typeof ciphertext === 'object' && ciphertext.ciphertext ? ciphertext.ciphertext : ciphertext;
+            let ciphertextWords;
+            if (typeof ciphertext === 'object' && ciphertext.ciphertext) {
+                ciphertextWords = ciphertext.ciphertext;
+            } else if (typeof ciphertext === 'string') {
+                ciphertextWords = Base64.parse(ciphertext);
+            } else {
+                ciphertextWords = ciphertext;
+            }
+            
             const keyWords = typeof key === 'string' ? Utf8.parse(key) : key;
             
             const cipher = Object.create(AES);
             cipher._key = keyWords;
+            cipher.blockSize = 4;
             cipher._doReset();
             
             const blockSize = 4;
@@ -491,45 +526,25 @@ function log(message) {
     }
 }
 
-// 将CryptoJS的WordArray转换为字节数组
-function wordsToBytes(words, sigBytes) {
-    let bytes = [];
-    for (let i = 0; i < words.length; i++) {
-        let word = words[i];
-        bytes.push((word >>> 24) & 0xFF);
-        bytes.push((word >>> 16) & 0xFF);
-        bytes.push((word >>> 8) & 0xFF);
-        bytes.push(word & 0xFF);
-    }
-    return bytes.slice(0, sigBytes);
-}
-
-// Base64解码
-function base64Decode(str) {
-    return CryptoJS.enc.Base64.parse(str);
-}
-
-// Base64编码
-function base64Encode(wordArray) {
-    return CryptoJS.enc.Base64.stringify(wordArray);
-}
-
 // AES解密函数
 function aesDecrypt(encryptedData) {
     try {
+        log("开始解密...");
+        
         // 第一次Base64解码
-        let decodedOnce = base64Decode(encryptedData);
+        let decodedOnce = CryptoJS.enc.Base64.parse(encryptedData);
         let decodedOnceStr = CryptoJS.enc.Utf8.stringify(decodedOnce);
+        log("第一次Base64解码完成");
         
         // 第二次Base64解码得到密文
-        let ciphertext = base64Decode(decodedOnceStr);
+        let ciphertext = CryptoJS.enc.Base64.parse(decodedOnceStr);
+        log("第二次Base64解码完成，密文长度: " + ciphertext.sigBytes);
         
         // 构建密钥和IV
-        let keyBytes = wordsToBytes(KEY_WORDS, 16);
-        let ivBytes = wordsToBytes(IV_WORDS, 16);
+        let key = CryptoJS.lib.WordArray.create(KEY_WORDS, 16);
+        let iv = CryptoJS.lib.WordArray.create(IV_WORDS, 16);
         
-        let key = CryptoJS.lib.WordArray.create(keyBytes);
-        let iv = CryptoJS.lib.WordArray.create(ivBytes);
+        log("密钥和IV构建完成");
         
         // 解密
         let decrypted = CryptoJS.AES.decrypt(
@@ -542,9 +557,15 @@ function aesDecrypt(encryptedData) {
             }
         );
         
-        return CryptoJS.enc.Utf8.stringify(decrypted);
+        let result = CryptoJS.enc.Utf8.stringify(decrypted);
+        log("解密成功，结果长度: " + result.length);
+        
+        return result;
     } catch (e) {
         log(`解密失败: ${e.message}`);
+        if (e.stack) {
+            log(`错误堆栈: ${e.stack}`);
+        }
         return null;
     }
 }
@@ -552,12 +573,13 @@ function aesDecrypt(encryptedData) {
 // AES加密函数
 function aesEncrypt(plaintext) {
     try {
-        // 构建密钥和IV
-        let keyBytes = wordsToBytes(KEY_WORDS, 16);
-        let ivBytes = wordsToBytes(IV_WORDS, 16);
+        log("开始加密...");
         
-        let key = CryptoJS.lib.WordArray.create(keyBytes);
-        let iv = CryptoJS.lib.WordArray.create(ivBytes);
+        // 构建密钥和IV
+        let key = CryptoJS.lib.WordArray.create(KEY_WORDS, 16);
+        let iv = CryptoJS.lib.WordArray.create(IV_WORDS, 16);
+        
+        log("密钥和IV构建完成");
         
         // 加密
         let encrypted = CryptoJS.AES.encrypt(
@@ -570,16 +592,24 @@ function aesEncrypt(plaintext) {
             }
         );
         
+        log("AES加密完成");
+        
         // 获取密文的Base64
-        let ciphertextBase64 = encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+        let ciphertextBase64 = CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
+        log("密文Base64编码完成");
         
         // 第二次Base64编码
         let secondEncode = CryptoJS.enc.Utf8.parse(ciphertextBase64);
         let finalResult = CryptoJS.enc.Base64.stringify(secondEncode);
         
+        log("加密完成，结果长度: " + finalResult.length);
+        
         return finalResult;
     } catch (e) {
         log(`加密失败: ${e.message}`);
+        if (e.stack) {
+            log(`错误堆栈: ${e.stack}`);
+        }
         return null;
     }
 }
@@ -613,18 +643,57 @@ function filterOrderInfo(orderInfo) {
     return filteredOrders;
 }
 
-// ============ 主函数 ============
+// 测试加密解密功能
+function testCrypto() {
+    try {
+        const testData = '{"test": "hello world", "number": 123}';
+        log("测试数据: " + testData);
+        
+        const encrypted = aesEncrypt(testData);
+        log("加密结果: " + (encrypted ? encrypted.substring(0, 50) + "..." : "失败"));
+        
+        if (encrypted) {
+            const decrypted = aesDecrypt(encrypted);
+            log("解密结果: " + decrypted);
+            
+            if (decrypted === testData) {
+                log("✅ 加密解密测试通过");
+                return true;
+            } else {
+                log("❌ 加密解密测试失败：结果不匹配");
+                return false;
+            }
+        }
+        return false;
+    } catch (e) {
+        log("❌ 测试异常: " + e.message);
+        return false;
+    }
+}
 
+// ============ 主函数 ============
 function modifyResponse(response) {
     try {
         log("开始处理响应...");
         
+        // 检查响应体是否存在
+        if (!response.body) {
+            log("响应体为空");
+            return response;
+        }
+        
         // 解析响应
-        let body = JSON.parse(response.body);
+        let body;
+        try {
+            body = JSON.parse(response.body);
+        } catch (e) {
+            log(`JSON解析失败: ${e.message}`);
+            return response;
+        }
         
         // 检查响应结构
-        if (!body.data || !body.data.outParam) {
-            log("响应数据结构不正确");
+        if (!body || !body.data || !body.data.outParam) {
+            log("响应数据结构不正确，可能不是加密响应");
             return response;
         }
         
@@ -642,7 +711,13 @@ function modifyResponse(response) {
         log("解密成功");
         
         // 解析解密后的JSON
-        let decryptedData = JSON.parse(decryptedStr);
+        let decryptedData;
+        try {
+            decryptedData = JSON.parse(decryptedStr);
+        } catch (e) {
+            log(`解密后JSON解析失败: ${e.message}`);
+            return response;
+        }
         
         // 过滤账单
         if (decryptedData.orderInfo) {
@@ -656,6 +731,8 @@ function modifyResponse(response) {
             log(`账单过滤完成: ${originalCount} -> ${filteredCount}`);
             log(`时间区间: ${CONFIG.startTime} - ${CONFIG.endTime}`);
             log(`过滤模式: ${CONFIG.filterMode}`);
+        } else {
+            log("未找到orderInfo字段，跳过过滤");
         }
         
         // 重新加密
@@ -677,7 +754,9 @@ function modifyResponse(response) {
         
     } catch (e) {
         log(`处理出错: ${e.message}`);
-        log(`错误堆栈: ${e.stack}`);
+        if (e.stack) {
+            log(`错误堆栈: ${e.stack}`);
+        }
     }
     
     return response;
@@ -685,19 +764,42 @@ function modifyResponse(response) {
 
 // ============ 圈X入口 ============
 
-// 检测是否是目标请求
-if ($request.url.indexOf("orderlistqryv3") !== -1) {
-    log("检测到账单查询请求");
-    
-    // 获取响应
-    let response = $response;
-    
-    // 修改响应
-    response = modifyResponse(response);
-    
-    // 返回修改后的响应
-    $done(response);
-} else {
-    $done({});
+// 启动时测试加密功能
+if (CONFIG.enableLog) {
+    log("=== 启动加密功能测试 ===");
+    testCrypto();
+    log("=== 测试完成 ===");
 }
 
+// 检测请求URL
+const url = $request.url;
+
+if (url && url.indexOf("orderlistqryv3") !== -1) {
+    log("检测到账单查询请求: " + url);
+    
+    // 检查响应是否存在
+    if (!$response || !$response.body) {
+        log("响应为空，跳过处理");
+        $done({});
+    } else {
+        // 创建响应对象
+        let response = {
+            status: $response.status || 200,
+            headers: $response.headers || {},
+            body: $response.body
+        };
+        
+        // 修改响应
+        response = modifyResponse(response);
+        
+        // 返回修改后的响应
+        $done({
+            status: response.status,
+            headers: response.headers,
+            body: response.body
+        });
+    }
+} else {
+    // 非目标请求，直接通过
+    $done({});
+}
