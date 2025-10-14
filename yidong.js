@@ -78,6 +78,6 @@ if (!response || !response.body) {
         }
     }
     
-    log("响应处理完成");
+    log("响应处理完成哈哈哈");
     $done({ body: response.body });
 }
