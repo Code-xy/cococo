@@ -19,35 +19,44 @@ function log(message) {
 
 // ============ 圈X入口 ============
 
-// 检测是否是目标请求
-if ($request.url.indexOf("getPayFeesHistory") !== -1) {
-    log(`检测到缴费历史查询请求: ${$request.url}`);
-    log(`请求方法: ${$request.method}`);
-    
-    // 跳过 OPTIONS 预检请求
-    if ($request.method === "OPTIONS") {
-        log("OPTIONS 预检请求，放行");
-        $done({});
-    } else {
-        log("直接拦截请求，返回空数据，不发送到服务器");
-        
-        // 构造一个假的响应，直接返回，不让请求发送到服务器
-        const fakeResponse = {
-            status: 200,
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                body: CONFIG.emptyDataResponse
-            })
-        };
-        
-        log(`返回假响应: ${fakeResponse.body}`);
-        log("请求已被拦截，未发送到服务器");
-        
-        // 返回假响应
-        $done({ response: fakeResponse });
-    }
-} else {
+log(`检测到缴费历史查询响应: ${$request.url}`);
+log(`请求方法: ${$request.method}`);
+
+// 获取响应
+let response = $response;
+
+if (!response || !response.body) {
+    log("响应为空，直接返回");
     $done({});
+} else {
+    try {
+        log(`原始响应体前100字符: ${response.body.substring(0, 100)}`);
+        
+        // 解析响应体
+        let body = JSON.parse(response.body);
+        
+        log(`响应结构 keys: ${Object.keys(body).join(', ')}`);
+        
+        // 替换 body 字段为空数据
+        if (body.body !== undefined) {
+            log(`原始 body.body 前50字符: ${body.body.substring(0, 50)}...`);
+            body.body = CONFIG.emptyDataResponse;
+            response.body = JSON.stringify(body);
+            log(`已替换为空数据响应`);
+        } else {
+            log("警告：响应结构中没有 body 字段，直接替换整个响应体");
+            response.body = JSON.stringify({ body: CONFIG.emptyDataResponse });
+        }
+        
+        log(`新响应: ${response.body}`);
+        
+    } catch (e) {
+        log(`处理出错: ${e.message}`);
+        log(`错误堆栈: ${e.stack}`);
+        // 如果解析失败，构造一个简单的响应
+        response.body = JSON.stringify({ body: CONFIG.emptyDataResponse });
+    }
+    
+    log("响应处理完成");
+    $done({ body: response.body });
 }
