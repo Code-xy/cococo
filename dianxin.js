@@ -17,7 +17,7 @@
 [rewrite_local]
 
 # > 中国电信缴费历史拦截，删除指定金额充值记录
-^https?:\/\/gd\.189\.cn\/J\/J10165\.j.* url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库/main/电信账单拦截脚本.js
+^https?:\/\/gd\.189\.cn\/J\/J10165\.j.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin.js
 
 [mitm] 
 hostname = gd.189.cn
