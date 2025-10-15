@@ -9,7 +9,7 @@ const CONFIG = {
     // 1. "empty_string" - 空字符串 ""
     // 2. "fixed_encrypted" - 固定的加密空数据
     // 3. "keep_original" - 保持原响应不变（用于调试）
-    emptyType: "empty_string",
+    emptyType: "fixed_encrypted",
     
     // 固定的加密空数据（当 emptyType = "fixed_encrypted" 时使用）
     fixedEmptyData: data
