@@ -6,12 +6,13 @@ const CONFIG = {
     enableLog: true,
     
     // 空值类型：
-    // 1. "empty_string" - 空字符串 ""
-    // 2. "fixed_encrypted" - 固定的加密空数据
+    // 1. "empty_string" - 空字符串 ""（可能被识别为异常）
+    // 2. "fixed_encrypted" - 使用预设的加密数据（解密后为空账单列表，看起来更真实）
     // 3. "keep_original" - 保持原响应不变（用于调试）
     emptyType: "fixed_encrypted",
     
-    // 固定的加密空数据（当 emptyType = "fixed_encrypted" 时使用）
+    // 预设的加密数据（当 emptyType = "fixed_encrypted" 时使用）
+    // 这是从真实服务器抓取的"空账单"响应，解密后表示没有缴费记录
     fixedEmptyData: data
 };
 
@@ -54,15 +55,18 @@ if (!response || !response.body) {
             log("配置为保持原响应，不做修改");
             // 不修改，直接返回
         } else if (body.body !== undefined) {
-            log(`原始 body.body 前50字符: ${body.body.substring(0, 50)}...`);
+            const originalLength = body.body ? body.body.length : 0;
+            log(`原始 body.body 长度: ${originalLength}`);
             
             // 根据配置类型替换
             if (CONFIG.emptyType === "empty_string") {
                 body.body = "";
-                log(`已替换为空字符串`);
+                log(`✅ 已替换为空字符串`);
             } else if (CONFIG.emptyType === "fixed_encrypted") {
                 body.body = CONFIG.fixedEmptyData;
-                log(`已替换为固定的加密空数据呢`);
+                log(`✅ 已替换为固定的加密数据`);
+                log(`替换后 body.body 长度: ${body.body.length}`);
+                log(`CONFIG.fixedEmptyData 长度: ${CONFIG.fixedEmptyData.length}`);
             }
             
             response.body = JSON.stringify(body);
@@ -72,7 +76,7 @@ if (!response || !response.body) {
             response.body = JSON.stringify({ body: emptyValue });
         }
         
-        log(`新响应: ${response.body}`);
+        log(`新响应体长度: ${response.body.length}`);
         
     } catch (e) {
         log(`处理出错: ${e.message}`);
