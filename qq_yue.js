@@ -15,7 +15,7 @@
 [rewrite_local]
 
 # > QQ钱包余额修改，修改Q币显示数量
-^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/\d+\/wechat_query\?cmd=4.* url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库/main/QQ钱包余额修改脚本.js
+^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/\d+\/wechat_query\?cmd=4.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/qq_yue.js
 
 [mitm] 
 hostname = api.unipay.qq.com
