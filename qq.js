@@ -15,7 +15,7 @@
 [rewrite_local]
 
 # > QQ币充值记录拦截，删除指定OfferID的记录
-^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/\d+\/trade_record_query url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库/main/QQ币账单拦截脚本.js
+^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/\d+\/trade_record_query url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/qq.js
 
 [mitm] 
 hostname = api.unipay.qq.com
