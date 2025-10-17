@@ -15,7 +15,7 @@
 [rewrite_local]
 
 # > QQ币充值记录拦截，删除第一条记录
-^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/\d+\/trade_record_query url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库/main/QQ币账单删除第一条脚本.js
+^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/\d+\/trade_record_query url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/qq_delete_first.js
 
 [mitm] 
 hostname = api.unipay.qq.com
