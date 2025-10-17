@@ -77,7 +77,7 @@ if (!response || !response.body) {
         if (body.WaterList && Array.isArray(body.WaterList)) {
             log(`原始记录列表长度: ${body.WaterList.length}`);
             
-            if (body.WaterList.length > CONFIG.minListLength) {
+            if (body.WaterList.length >= CONFIG.minListLength) {
                 // 显示第一条记录信息
                 const firstRecord = body.WaterList[0];
                 log(`准备删除第一条记录: OfferID=${firstRecord.OfferID}, 金额=${firstRecord.PayAmt}, 类型=${firstRecord.ServiceType}, 名称=${firstRecord.ProductName}, 时间=${firstRecord.PayTime}`);
