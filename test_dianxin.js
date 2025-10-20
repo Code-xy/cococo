@@ -6,7 +6,7 @@
 [rewrite_local]
 
 # > 电信连接测试
-^https?:\/\/appfuwu\.189\.cn.* url script-response-body test_dianxin.js
+^https?:\/\/appfuwu\.189\.cn.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/test_dianxin.js
 
 [mitm] 
 hostname = appfuwu.189.cn
