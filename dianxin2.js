@@ -12,7 +12,7 @@
 *******************************
 [rewrite_local]
 
-# ^https?:\/\/appfuwu\.189\.cn(:9021)?\/query\/rechargeRecord$ url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
+^https?:\/\/appfuwu\.189\.cn(:9021)?\/query\/rechargeRecord$ url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
 
 [mitm]
 hostname = appfuwu.189.cn
