@@ -15,10 +15,10 @@
 [rewrite_local]
 
 # > 电信充值记录拦截，按月份或精确时间删除
-^https?:\/\/[a-z0-9\.-]*189\.cn\/.*recharge.*record.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
+^https?:\/\/appfuwu\.189\.cn:9021\/query\/rechargeRecord url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
 
 [mitm] 
-hostname = appfuwu.189.cn
+hostname = appfuwu.189.cn:9021
 *
 *
 */
