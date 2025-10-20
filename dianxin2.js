@@ -15,7 +15,7 @@
 # > 电信充值记录拦截，按配置删除月份/时间点
 ^https?:\/\/appfuwu\.189\.cn(:9021)?\/query\/rechargeRecord$ url script-response-body 电信2.js
 # 如使用远程托管，示例：
-# ^https?:\/\/appfuwu\.189\.cn(:9021)?\/query\/rechargeRecord$ url script-response-body https://raw.githubusercontent.com/你的用户名/你的仓库/main/电信2.js
+# ^https?:\/\/appfuwu\.189\.cn(:9021)?\/query\/rechargeRecord$ url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
 
 [mitm]
 hostname = appfuwu.189.cn
