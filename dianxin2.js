@@ -18,10 +18,10 @@
 
 # > 中国电信充值记录拦截，删除最新的第一条记录
 # 适配接口：充值明细查询
-^https?:\/\/[^\/]+\fuwu.189\.cn\/.+ url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
+^https?:\/\/[^\/]+\appfuwu.189\.cn\/.+ url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
 
 [mitm] 
-hostname = fuwu.189.cn
+hostname = appfuwu.189.cn
 *
 *
 
@@ -54,6 +54,12 @@ function log(message) {
 }
 
 // ============ 圈X入口 ============
+
+// 检查是否在圈X环境中运行
+if (typeof $request === 'undefined' || typeof $response === 'undefined') {
+    console.log("❌ 脚本未在圈X环境中运行，请检查配置");
+    $done({});
+}
 
 log("========== 脚本开始执行 ==========");
 log(`检测到电信充值记录查询响应: ${$request.url}`);
