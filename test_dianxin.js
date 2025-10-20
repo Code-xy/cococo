@@ -23,25 +23,25 @@ const CONFIG = {
 // 日志函数
 function log(message) {
     if (CONFIG.enableLog) {
-        console.log(`[电信连接测试] ${message}`);
+        console.log("[电信连接测试] " + message);
     }
 }
 
 // ============ 圈X入口 ============
 
 log("========== 测试脚本开始执行 ==========");
-log(`检测到请求: ${$request.url}`);
-log(`请求方法: ${$request.method}`);
-log(`请求头: ${JSON.stringify($request.headers)}`);
+log("检测到请求: " + $request.url);
+log("请求方法: " + $request.method);
+log("请求头: " + JSON.stringify($request.headers));
 
 // 检查响应
 if ($response) {
-    log(`响应状态: ${$response.status}`);
-    log(`响应头: ${JSON.stringify($response.headers)}`);
-    log(`响应体长度: ${$response.body ? $response.body.length : 0}`);
+    log("响应状态: " + $response.status);
+    log("响应头: " + JSON.stringify($response.headers));
+    log("响应体长度: " + ($response.body ? $response.body.length : 0));
     
     if ($response.body) {
-        log(`响应体前200字符: ${$response.body.substring(0, 200)}`);
+        log("响应体前200字符: " + $response.body.substring(0, 200));
     }
 } else {
     log("❌ 没有响应数据");
