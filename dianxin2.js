@@ -21,7 +21,7 @@
 ^https?:\/\/[^\/]+\appfuwu.189\.cn\/.+ url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/dianxin2.js
 
 [mitm] 
-hostname = appfuwu.189.cn
+hostname = appfuwu.189.cn, *.189.cn
 *
 *
 
@@ -64,6 +64,13 @@ if (typeof $request === 'undefined' || typeof $response === 'undefined') {
 log("========== 脚本开始执行 ==========");
 log(`检测到电信充值记录查询响应: ${$request.url}`);
 log(`请求方法: ${$request.method}`);
+
+// 处理证书验证问题
+if ($request && $request.url && $request.url.includes('appfuwu.189.cn')) {
+    log("✅ 检测到电信充值记录请求，开始处理");
+} else {
+    log("⚠️ 请求URL不匹配或为空");
+}
 
 // 获取响应
 let response = $response;
