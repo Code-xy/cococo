@@ -58,7 +58,7 @@ function log(message) {
 // 检查是否在圈X环境中运行
 if (typeof $request === 'undefined' || typeof $response === 'undefined') {
     console.log("❌ 脚本未在圈X环境中运行，请检查配置");
-    $done({});
+    // 不要直接退出，让脚本继续执行以便调试
 }
 
 log("========== 脚本开始执行 ==========");
