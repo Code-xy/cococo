@@ -12,7 +12,7 @@
 
 [rewrite_local]
 # 联通账单重定向到本地服务器（保留Cookie和参数）
-^https?:\/\/upay\.10010\.com\/npfwap\/NpfMobAppQuery\/feeSearch\/queryOrderNew.* url script-request-header 联通账单拦截脚本-重定向版.js
+^https?:\/\/upay\.10010\.com\/npfwap\/NpfMobAppQuery\/feeSearch\/queryOrderNew.* url script-request-header https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/liantong_302.js
 
 [mitm] 
 hostname = upay.10010.com
