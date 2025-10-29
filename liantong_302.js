@@ -27,10 +27,18 @@ log("=".repeat(60));
 log("🔔 拦截到联通响应，准备替换");
 log("=".repeat(60));
 
+// 从Cookie中提取c_mobile（用于调试）
+const cookies = $request.headers['Cookie'] || '';
+const c_mobile_match = cookies.match(/c_mobile=([^;]+)/);
+const c_mobile = c_mobile_match ? c_mobile_match[1] : '(未找到)';
+
+log(`📱 Cookie中的手机号: ${c_mobile}`);
+log(`💡 后端将根据手机号自动匹配账户`);
+
 // 构建后端API地址（用于获取修改后的响应）
 const backendUrl = `${SERVER_URL}/npfwap/NpfMobAppQuery/feeSearch/queryOrderNew`;
 
-log(`📡 请求后端获取修改后的数据: ${backendUrl}`);
+log(`📡 请求后端: ${backendUrl}`);
 
 // 从后端获取修改后的响应
 $task.fetch({
