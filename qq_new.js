@@ -29,10 +29,19 @@ log("=".repeat(60));
 
 // 从请求body中提取openid（用于调试）
 const requestBody = $request.body || '';
+
+log(`📦 请求Body长度: ${requestBody.length} 字节`);
+log(`📦 请求Body前100字符: ${requestBody.substring(0, 100)}`);
+
 const openid_match = requestBody.match(/openid=([^&]+)/);
 const openid = openid_match ? openid_match[1] : '(未找到)';
 
-log(`🆔 请求中的OpenID: ${openid}`);
+if (openid_match) {
+    log(`✅ 成功提取OpenID: ${openid}`);
+} else {
+    log(`⚠️ 未找到OpenID，请检查请求格式`);
+}
+
 log(`💡 后端将根据OpenID自动匹配QQ账户`);
 
 // 构建后端API地址
