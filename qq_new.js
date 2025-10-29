@@ -4,7 +4,7 @@
 
 /*
 [rewrite_local]
-^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/1450000186\/trade_record_query url script-request-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/qq_new.js
+^https?:\/\/api\.unipay\.qq\.com\/v1\/r\/1450000186\/trade_record_query url script-echo-response https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/qq_new.js
 
 [mitm]
 hostname = api.unipay.qq.com
