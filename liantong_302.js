@@ -1,87 +1,105 @@
-// ============ 联通账单拦截脚本 - 重定向版 ============
-// 功能：将联通账单请求重定向到本地服务器，返回修改后的响应
-// 使用方法：在圈X中配置重写规则
+// ============ 联通账单拦截脚本 - 替换响应版 ============
+// 功能：拦截联通API响应，替换为后端修改后的数据
+// 类型：script-response-body
+// 最简单直接的方式！
 
 /*
-脚本功能：中国联通账单查询重定向到本地服务器
-软件版本：圈X
 使用说明：
-1. 启动后端服务器: python liantong_manual_backend.py
-2. 在后台查询账单、编辑JSON、保存
-3. 在圈X中添加以下配置：
+1. 启动后端: python liantong_manual_backend_v2.py
+2. 在后端管理界面选择账户、查询并保存修改后的响应
+3. 修改下面的 SERVER_URL 为你的电脑IP
+4. 在圈X中配置：
 
 [rewrite_local]
-# 联通账单重定向到本地服务器（保留Cookie和参数）
-^https?:\/\/upay\.10010\.com\/npfwap\/NpfMobAppQuery\/feeSearch\/queryOrderNew.* url script-request-header https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/liantong_302.js
+^https?:\/\/upay\.10010\.com\/npfwap\/NpfMobAppQuery\/feeSearch\/queryOrderNew.* url script-response-body https://raw.githubusercontent.com/Code-xy/cococo/refs/heads/main/liantong_302.js
 
-[mitm] 
+[mitm]
 hostname = upay.10010.com
-
-注意：
-- 修改下面的 SERVER_URL 为你的电脑IP
 */
 
 // ============ 配置区域 ============
 const SERVER_URL = 'http://192.168.240.68:8004';
 
 // ============ 主逻辑 ============
-const log = (msg) => {
-    console.log(`[联通重定向] ${msg}`);
-};
+const log = (msg) => console.log(`[联通替换] ${msg}`);
 
-// 分隔线
 log("=".repeat(60));
-log("🔔 拦截到联通账单请求");
+log("🔔 拦截到联通响应，准备替换");
 log("=".repeat(60));
 
-try {
-    // 输出原始请求信息
-    log(`📡 原始URL: ${$request.url}`);
-    log(`🔧 请求方法: ${$request.method}`);
-    
-    // 检查Cookie
-    const hasCookie = $request.headers['Cookie'] || $request.headers['cookie'];
-    log(`🍪 Cookie存在: ${hasCookie ? '✅ 是' : '❌ 否'}`);
-    
-    if (hasCookie) {
-        const cookieLength = hasCookie.length;
-        log(`🍪 Cookie长度: ${cookieLength} 字符`);
+// 构建后端API地址（用于获取修改后的响应）
+const backendUrl = `${SERVER_URL}/npfwap/NpfMobAppQuery/feeSearch/queryOrderNew`;
+
+log(`📡 请求后端获取修改后的数据: ${backendUrl}`);
+
+// 从后端获取修改后的响应
+$task.fetch({
+    url: backendUrl,
+    method: 'GET',
+    headers: {
+        'Cookie': $request.headers['Cookie'] || '',
+        'User-Agent': 'QuantumultX'
+    }
+}).then(response => {
+    if (response.statusCode === 200) {
+        const body = response.body;
         
-        // 检查关键Cookie字段
-        const hasJUT = hasCookie.includes('JUT=');
-        const hasLoginflag = hasCookie.includes('loginflag=');
-        log(`🍪 关键字段: JUT=${hasJUT ? '✅' : '❌'}, loginflag=${hasLoginflag ? '✅' : '❌'}`);
+        try {
+            const data = JSON.parse(body);
+            
+            if (data.RETURN_CODE === '0000') {
+                log(`✅ 成功获取后端修改后的数据`);
+                
+                // 显示统计信息
+                if (data.payfee && data.payfee.length > 0) {
+                    log(`📊 账单记录数: ${data.payfee.length}`);
+                } else if (data.feeDetails && data.feeDetails.length > 0) {
+                    log(`📊 账单记录数: ${data.feeDetails.length}`);
+                }
+                
+                log(`🔄 替换原始响应为修改后的数据`);
+                log("=".repeat(60));
+                
+                // 替换响应body
+                $done({ body: body });
+                
+            } else if (data.RETURN_CODE === '9999') {
+                log(`⚠️ 后端返回错误: ${data.RETURN_DESC}`);
+                log(`💡 提示: 请在管理界面选择账户并保存修改后的响应`);
+                log(`📄 返回后端的错误信息给APP`);
+                
+                // 返回后端的错误信息
+                $done({ body: body });
+                
+            } else {
+                log(`⚠️ 未知返回码: ${data.RETURN_CODE}`);
+                $done({ body: body });
+            }
+            
+        } catch (e) {
+            log(`❌ JSON解析失败: ${e.message}`);
+            log(`📄 返回原始响应`);
+            $done({});
+        }
+        
+    } else {
+        log(`❌ 后端请求失败: HTTP ${response.statusCode}`);
+        log(`💡 请检查后端是否启动`);
+        log(`📄 返回原始响应`);
+        
+        // 返回原始响应
+        $done({});
     }
     
-    // 解析URL，保留所有参数
-    const originalUrl = new URL($request.url);
-    const params = originalUrl.search;
-    log(`📋 URL参数: ${params || '(无)'}`);
+}, reason => {
+    log(`❌ 无法连接到后端: ${reason.error}`);
+    log(`💡 请检查:`);
+    log(`   1. 后端是否启动: python liantong_manual_backend_v2.py`);
+    log(`   2. IP地址是否正确: ${SERVER_URL}`);
+    log(`   3. 手机和电脑是否在同一网络`);
+    log(`📄 返回原始响应（不影响正常使用）`);
     
-    // 构建新的URL
-    const newUrl = `${SERVER_URL}/npfwap/NpfMobAppQuery/feeSearch/queryOrderNew${params}`;
-    
-    log(`🎯 重定向目标: ${newUrl}`);
-    log(`🔄 保留原始请求头: 是`);
-    log(`🔄 保留Cookie: 是`);
-    
-    // 测试后端连通性提示
-    log(`💡 提示: 请确保手机能访问 ${SERVER_URL}`);
-    
-    log("=".repeat(60));
-    log("✅ 重定向完成");
-    log("=".repeat(60));
-    
-    // 执行重定向（保留所有原始headers，包括Cookie）
-    $done({ url: newUrl });
-    
-} catch (error) {
-    log("❌ 重定向失败！");
-    log(`错误信息: ${error.message || error}`);
-    log(`错误堆栈: ${error.stack || '无'}`);
-    
-    // 发生错误时不修改请求，让它继续访问原始服务器
-    log("⚠️  回退到原始请求");
+    // 连接失败，返回原始响应
     $done({});
-}
+});
 
