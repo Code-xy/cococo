@@ -44,7 +44,10 @@ function log(message) {
         log(`✅ 后端响应状态: ${response.statusCode}`);
 
         if (response.statusCode === 200) {
-            log(`📦 加密响应长度: ${response.body.length} 字符`);
+            log(`📦 响应内容类型: ${response.headers['Content-Type'] || response.headers['content-type'] || '未知'}`);
+            log(`📦 响应体长度: ${response.body.length} 字符`);
+            log(`📦 响应体前100字符: ${response.body.substring(0, 100)}`);
+            log(`📦 响应体完整内容: ${response.body}`);
             log(`🔐 响应已由后端AES加密`);
             log(`🎉 成功！返回加密后的移动余额数据`);
             log("============================================================");
@@ -54,6 +57,7 @@ function log(message) {
             return;
         } else {
             log(`⚠️ 后端返回状态码: ${response.statusCode}`);
+            log(`⚠️ 错误响应内容: ${response.body}`);
         }
 
         // 如果后端失败，返回原始响应
