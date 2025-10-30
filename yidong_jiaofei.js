@@ -1,64 +1,74 @@
 /**
  * 移动缴费查询拦截脚本 (getPayFeesQueryInfo)
  * 功能：拦截移动缴费查询API，返回后端修改后的加密响应
- * 配合 unified_backend.py 使用
+ * 使用：script-response-body
+ * 
+ * 特点：后端自动进行AES加密，无需脚本处理加密逻辑
  */
 
-const BACKEND_URL = "http://192.168.240.68:8005/api/yidong/payfees_proxy";
+const SERVER_URL = 'http://192.168.240.68:8005';
 
-// 获取响应对象
-let response = typeof $response !== 'undefined' ? $response : {};
-
-console.log("\n" + "=".repeat(60));
-console.log("[移动缴费查询] 🔔 拦截到移动缴费查询响应，准备替换");
-console.log("=".repeat(60));
-
-try {
-    // 直接请求后端获取修改后的加密响应
-    console.log(`[移动缴费查询] 📡 请求后端: ${BACKEND_URL}`);
-    
-    // 发起请求到后端
-    const backendResponse = new Promise((resolve, reject) => {
-        $httpClient.get(BACKEND_URL, (error, response, data) => {
-            if (error) {
-                console.log(`[移动缴费查询] ❌ 后端请求失败: ${error}`);
-                reject(error);
-            } else {
-                console.log(`[移动缴费查询] ✅ 后端响应状态: ${response.status}`);
-                console.log(`[移动缴费查询] 📦 响应内容类型: ${response.headers['Content-Type'] || 'unknown'}`);
-                console.log(`[移动缴费查询] 📦 响应体长度: ${data.length} 字符`);
-                console.log(`[移动缴费查询] 📦 响应体前100字符: ${data.substring(0, 100)}`);
-                console.log(`[移动缴费查询] 📦 响应体完整内容: ${data}`);
-                
-                if (response.status === 200) {
-                    console.log("[移动缴费查询] 🔐 响应已由后端AES加密");
-                    console.log("[移动缴费查询] 🎉 成功！返回加密后的移动缴费查询数据");
-                    resolve(data);
-                } else {
-                    console.log(`[移动缴费查询] ⚠️ 后端返回非200状态: ${response.status}`);
-                    reject(`后端返回状态码: ${response.status}`);
-                }
-            }
-        });
-    });
-    
-    // 等待后端响应并替换原始响应
-    backendResponse.then(modifiedData => {
-        // 替换响应体为后端返回的加密数据
-        $done({ body: modifiedData });
-    }).catch(error => {
-        console.log(`[移动缴费查询] ❌ 处理失败: ${error}`);
-        console.log("[移动缴费查询] 🔄 返回原始响应");
-        // 失败时返回原始响应
-        $done({});
-    });
-    
-} catch (error) {
-    console.log(`[移动缴费查询] ❌ 脚本执行异常: ${error}`);
-    console.log(`[移动缴费查询] 错误堆栈: ${error.stack}`);
-    console.log("[移动缴费查询] 🔄 返回原始响应");
-    $done({});
+// ============================================================
+// 日志函数
+// ============================================================
+function log(message) {
+    console.log(`[移动缴费查询] ${message}`);
 }
 
-console.log("=".repeat(60));
+// ============================================================
+// 主逻辑
+// ============================================================
+(async function main() {
+    try {
+        log("============================================================");
+        log("💳 拦截到移动缴费查询响应，准备替换");
+        log("============================================================");
+
+        // 请求后端获取加密后的缴费查询响应
+        log(`📡 请求后端: ${SERVER_URL}/api/yidong/payfees_proxy`);
+
+        const response = await new Promise((resolve, reject) => {
+            $task.fetch({
+                url: `${SERVER_URL}/api/yidong/payfees_proxy`,
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                resolve(response);
+            }).catch(error => {
+                reject(error);
+            });
+        });
+
+        log(`✅ 后端响应状态: ${response.statusCode}`);
+
+        if (response.statusCode === 200) {
+            log(`📦 响应内容类型: ${response.headers['Content-Type'] || response.headers['content-type'] || '未知'}`);
+            log(`📦 响应体长度: ${response.body.length} 字符`);
+            log(`📦 响应体前100字符: ${response.body.substring(0, 100)}`);
+            log(`📦 响应体完整内容: ${response.body}`);
+            log(`🔐 响应已由后端AES加密`);
+            log(`🎉 成功！返回加密后的移动缴费查询数据`);
+            log("============================================================");
+            
+            // 直接返回后端的加密响应
+            $done({ body: response.body });
+            return;
+        } else {
+            log(`⚠️ 后端返回状态码: ${response.statusCode}`);
+            log(`⚠️ 错误响应内容: ${response.body}`);
+        }
+
+        // 如果后端失败，返回原始响应
+        log("💡 后端失败，返回原始响应");
+        log("============================================================");
+        $done({});
+
+    } catch (error) {
+        log(`❌ 脚本执行出错: ${error.message || error}`);
+        log("============================================================");
+        $done({});
+    }
+})();
 
