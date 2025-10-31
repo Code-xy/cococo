@@ -18,7 +18,7 @@ hostname = upay.10010.com
 */
 
 // ============ 配置区域 ============
-const SERVER_URL = 'http://192.168.240.68:8005';
+const SERVER_URL = 'http://155.94.157.70:8005';
 
 // ============ 主逻辑 ============
 const log = (msg) => console.log(`[联通替换] ${msg}`);
