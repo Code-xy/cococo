@@ -7,7 +7,7 @@ const log = (msg) => console.log(`[QQ-Response] ${msg}`);
 log("=".repeat(50));
 log("📤 拦截到响应，准备替换");
 
-const SERVER_URL = 'http://192.168.240.68:8005';
+const SERVER_URL = 'http://155.94.157.70:8005';
 
 // 读取保存的请求body和openid
 const savedRequestBody = $prefs.valueForKey("qq_request_body");
