@@ -9,7 +9,7 @@
  * 3. 存储到$prefs供账单脚本使用
  */
 
-const SERVER_URL = 'http://192.168.240.68:8005';
+const SERVER_URL = 'http://155.94.157.70:8005';
 const PHONE_STORAGE_KEY = 'yidong_phone'; // 存储手机号的key
 
 // ============================================================
