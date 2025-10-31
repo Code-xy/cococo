@@ -7,6 +7,7 @@
  * 1. 从$prefs读取手机号
  * 2. 请求后端获取修改后的账单响应
  * 3. 后端自动进行AES加密，无需脚本处理加密逻辑
+ * 4. 将加密字符串包裹在 { body: "加密字符串" } 格式中
  */
 
 const SERVER_URL = 'http://192.168.240.68:8005';
@@ -66,13 +67,19 @@ function log(message) {
         log(`✅ 后端响应状态: ${response.statusCode}`);
 
         if (response.statusCode === 200) {
-            log(`📦 响应体长度: ${response.body ? response.body.length : 0} 字符`);
+            const encryptedData = response.body; // 后端返回的加密字符串
+            log(`📦 加密数据长度: ${encryptedData ? encryptedData.length : 0} 字符`);
+            log(`📦 加密数据前50字符: ${encryptedData ? encryptedData.substring(0, 50) : ''}`);
+            
+            // 关键：移动API返回格式是 { body: "加密字符串" }，不是直接的加密字符串
+            const responseBody = JSON.stringify({ body: encryptedData });
+            log(`📦 包装后的响应体长度: ${responseBody.length} 字符`);
             log(`🔐 响应已由后端AES加密`);
-            log(`🎉 成功！返回加密后的移动账单数据`);
+            log(`🎉 成功！返回包装后的移动账单数据`);
             log("============================================================");
             
-            // 直接返回后端的加密响应
-            $done({ body: response.body });
+            // 返回包装后的响应格式
+            $done({ body: responseBody });
             return;
         } else {
             log(`⚠️ 后端返回状态码: ${response.statusCode}`);
