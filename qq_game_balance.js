@@ -84,8 +84,10 @@ $task.fetch({
                     "message":"OK"
                 };
                 // 替换响应body
+                log("打印新响应")
+                log(`新响应：${JSON.stringify(new_body)}`);
                 log(new_body);
-                $done({ body: new_body });
+                $done({ body: JSON.stringify(new_body) });
                 
             } else if (data.ret === 1 || data.ret === '1') {
                 log(data)
