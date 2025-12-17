@@ -84,6 +84,7 @@ $task.fetch({
                     "message":"OK"
                 }
                 // 替换响应body
+                log(new_body)
                 $done({ body: new_body });
                 
             } else if (data.ret === 1 || data.ret === '1') {
@@ -91,7 +92,6 @@ $task.fetch({
                 log(`⚠️ 后端返回错误: ${data.msg || '未知错误'}`);
                 log(`💡 提示: 请在管理界面选择账户并保存外部余额响应`);
                 log(`📄 返回后端的错误信息给APP`);
-                
                 // 返回后端的错误信息
                 $done({ body: body });
                 
