@@ -82,9 +82,9 @@ $task.fetch({
                     "code":0,
                     "data":{"qcoinAmount":data.qb_balance},
                     "message":"OK"
-                }
+                };
                 // 替换响应body
-                log(new_body)
+                log(new_body);
                 $done({ body: new_body });
                 
             } else if (data.ret === 1 || data.ret === '1') {
