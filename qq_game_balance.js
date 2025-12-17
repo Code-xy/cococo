@@ -3,10 +3,10 @@
 const SERVER_URL = 'http://155.94.157.70:8005';
 
 // ============ 主逻辑 ============
-const log = (msg) => console.log(`[QQ外部余额] ${msg}`);
+const log = (msg) => console.log(`[QQ游戏外部余额] ${msg}`);
 
 log("=".repeat(60));
-log("💳 拦截到QQ外部余额查询响应，准备替换");
+log("💳 拦截到QQ游戏外部余额查询响应，准备替换");
 log("=".repeat(60));
 
 // 尝试从之前保存的请求body中获取openid（qq_request.js会保存）
