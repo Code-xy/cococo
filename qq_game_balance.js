@@ -1,101 +1,128 @@
-/**
- * QQ余额查询拦截脚本
- * 功能：拦截QQ余额查询响应，直接返回后端设置的余额
- * 使用：script-response-body
- */
+
 
 const SERVER_URL = 'http://155.94.157.70:8005';
 
-// ============================================================
-// 日志函数
-// ============================================================
-function log(message) {
-    console.log(`[QQ游戏余额] ${message}`);
+// ============ 主逻辑 ============
+const log = (msg) => console.log(`[QQ游戏外部余额] ${msg}`);
+
+log("=".repeat(60));
+log("💳 拦截到QQ游戏外部余额查询响应，准备替换");
+log("=".repeat(60));
+
+// 尝试从之前保存的请求body中获取openid（qq_request.js会保存）
+let openid = null;
+try {
+    const savedRequestBody = $prefs.valueForKey("qq_request_body");
+    if (savedRequestBody) {
+        const openid_match = savedRequestBody.match(/openid=([^&]+)/);
+        if (openid_match) {
+            openid = openid_match[1];
+            log(`🆔 从保存的请求body提取到OpenID: ${openid}`);
+        }
+    }
+    
+    // 如果没找到，尝试从当前保存的openid获取
+    if (!openid) {
+        openid = $prefs.valueForKey("qq_current_openid");
+        if (openid) {
+            log(`🆔 从保存的OpenID获取: ${openid}`);
+        }
+    }
+} catch (e) {
+    log(`⚠️ 读取保存的OpenID失败: ${e.message}`);
 }
 
-// ============================================================
-// 主逻辑
-// ============================================================
-(async function main() {
-    try {
-        log("============================================================");
-        log("🔔 拦截到QQ游戏余额查询响应，准备替换");
-        log("============================================================");
+if (!openid) {
+    log(`⚠️ 未找到OpenID，后端将使用默认匹配策略`);
+}
 
-        // 从请求URL中提取openid
-        const requestUrl = $request.url || '';
-        log(`📍 请求URL: ${requestUrl.substring(0, 100)}...`);
+// 构建后端API地址
+let backendUrl = `${SERVER_URL}/v1/r/1450000299/get_qqacct_info`;
+if (openid) {
+    backendUrl += `?openid=${encodeURIComponent(openid)}`;
+    log(`📡 请求后端（带OpenID）: ${backendUrl}`);
+} else {
+    log(`📡 请求后端（无OpenID）: ${backendUrl}`);
+}
 
-        let openid = null;
-        const openidMatch = requestUrl.match(/openid=([^&]+)/);
-        if (openidMatch) {
-            openid = openidMatch[1];
-            log(`✅ 从URL提取到OpenID: ${openid}`);
-        } else {
-            log(`⚠️ 未从URL中提取到OpenID`);
-        }
-
-        // 构建后端请求URL（保留原始URL参数）
-        const backendUrl = requestUrl.replace(
-            'https://api.unipay.qq.com',
-            SERVER_URL
-        );
+// 从后端获取修改后的响应
+$task.fetch({
+    url: backendUrl,
+    method: 'POST',  // 外部余额API使用POST
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': $request.headers['User-Agent'] || 'QuantumultX'
+    },
+    body: $request.body || ''  // 传递原始请求body，后端会从中提取openid
+}).then(response => {
+    if (response.statusCode === 200) {
+        const body = response.body;
         
-        log(`📡 请求后端: ${backendUrl.substring(0, 100)}...`);
-
-        // 请求后端获取修改后的余额
-        const response = await new Promise((resolve, reject) => {
-            $task.fetch({
-                url: backendUrl,
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
+        try {
+            const data = JSON.parse(body);
+            
+            if (data.ret === 0 || data.ret === '0') {
+                log(`✅ 成功获取后端修改后的外部余额数据`);
+                
+                // 显示余额信息
+                if (data.qb_balance !== undefined) {
+                    log(`🪙 Q币余额: ${data.qb_balance}`);
                 }
-            }).then(response => {
-                resolve(response);
-            }).catch(error => {
-                reject(error);
-            });
-        });
-
-        log(`✅ 后端响应状态: ${response.statusCode}`);
-
-        if (response.statusCode === 200) {
-            try {
-                const data = JSON.parse(response.body);
-                log(`📋 返回码: ${data.ret}`);
-
-                if (data.ret === 0) {
-                    log(`💰 Q币余额: ${data.qb_balance}`);
-                    log(`💎 Q点余额: ${data.qd_balance}`);
-                    log(`🎉 成功！返回修改后的余额数据`);
-                    log("============================================================");
-                    //构建新body
-                    const new_body = {
-                        "code":0,
-                        "data":{"qcoinAmount":data.qb_balance},
-                        "message":"OK"
-                    }
-                    $done({ body: new_body });
-                    return;
-                } else {
-                    log(`⚠️ 后端返回错误: ${data.msg || '未知错误'}`);
+                if (data.qd_balance !== undefined) {
+                    log(`💰 Q点余额: ${data.qd_balance}`);
                 }
-            } catch (e) {
-                log(`❌ 解析后端响应失败: ${e.message}`);
+                if (data.month_info && Array.isArray(data.month_info)) {
+                    log(`📅 月度信息: ${data.month_info.length} 条`);
+                }
+                
+                log(`🔄 替换原始响应为修改后的数据`);
+                log("=".repeat(60));
+                //构建新body
+                const new_body = {
+                    "code":0,
+                    "data":{"qcoinAmount":data.qb_balance},
+                    "message":"OK"
+                }
+                // 替换响应body
+                $done({ body: new_body });
+                
+            } else if (data.ret === 1 || data.ret === '1') {
+                log(data)
+                log(`⚠️ 后端返回错误: ${data.msg || '未知错误'}`);
+                log(`💡 提示: 请在管理界面选择账户并保存外部余额响应`);
+                log(`📄 返回后端的错误信息给APP`);
+                
+                // 返回后端的错误信息
+                $done({ body: body });
+                
+            } else {
+                log(`⚠️ 未知返回码: ${data.ret}`);
+                $done({ body: body });
             }
-        } else {
-            log(`⚠️ 后端返回状态码: ${response.statusCode}`);
+            
+        } catch (e) {
+            log(`❌ JSON解析失败: ${e.message}`);
+            log(`📄 返回原始响应`);
+            $done({});
         }
-
-        // 如果后端失败，返回原始响应
-        log("💡 后端失败，返回原始响应");
-        log("============================================================");
-        $done({});
-
-    } catch (error) {
-        log(`❌ 脚本执行出错: ${error.message || error}`);
-        log("============================================================");
+        
+    } else {
+        log(`❌ 后端请求失败: HTTP ${response.statusCode}`);
+        log(`💡 请检查后端是否启动`);
+        log(`📄 返回原始响应`);
+        
+        // 返回原始响应
         $done({});
     }
-})();
+    
+}, reason => {
+    log(`❌ 无法连接到后端: ${reason.error}`);
+    log(`💡 请检查:`);
+    log(`   1. 后端是否启动: python unified_backend.py`);
+    log(`   2. IP地址是否正确: ${SERVER_URL}`);
+    log(`   3. 手机和电脑是否在同一网络`);
+    log(`📄 返回原始响应（不影响正常使用）`);
+    
+    // 连接失败，返回原始响应
+    $done({});
+});
